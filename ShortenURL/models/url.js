@@ -1,15 +1,16 @@
 import mongoose from "mongoose";
 
 const urlSchema = new mongoose.Schema({
-    userId:{
-        type: Number
-    },
     fullURL:{
         type:String,
+        unique:true
     },
     shortURL:{
         type:String,
         unique:true
+    },
+    clickCounter:{
+        type:Number
     }
 });
 export default mongoose.model("url",urlSchema);
