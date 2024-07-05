@@ -79,7 +79,7 @@ function dispalyURLs(urlsArray)
     </tr>\
     ${urlsArray.map((url)=>{
         return `<tr>\
-                <td style=padding:7px;>${url.shortURL}</td>\
+                <td style=padding:7px;>http://localhost:3000/urls/${url.shortURL}</td>\
                 <td style=padding:7px;text-align:center><b>${url.clickCounter}</b></td>\
                 </tr>`})}</table></div></contains-html>`;
     return markup;
