@@ -2,30 +2,32 @@ import express from "express";
 import ShortUniqueId from "short-unique-id";
 import notification from "../notification.js";
 import url from "../models/url.js";
+import userURLs from "../models/userURLs.js";
 
 let urlRoute = express.Router();
 
 urlRoute.post('/',async(req,res)=>{
     try
     {
-        let {userId,fullURL,shortURL}= req.body;
-        if(shortURL)
+        let {userId,fullURL}= req.body;
+        let exisredURL = await url.findOne({fullURL});
+        if(!exisredURL)
         {
-            let record = await url.findOne({shortURL});
-            if(record)
-            {
-                
-                let markup=`<contains-html><h5>This short URL is already used!! please, select another one </h5></contains-html>`;
-                notification(markup);
-                return res.json({message:" This short URL is already used!.."});
-            }
+            let shortURL = new ShortUniqueId({length:10}).rnd();
+            let newURL = new url({fullURL, shortURL, clickCounter:0});
+            await newURL.save();
+            res.json({message:" The URL saved successfully.."});
         }
-        else{
-            shortURL = new ShortUniqueId({length:10}).rnd();
+        else
+            res.json({message:" The URL already saved .."});
+        // user table
+        let existedRecord = await userURLs.findOne({userId,fullURL});
+        if(!existedRecord)
+        {
+            let newRecord = new userURLs({userId,fullURL});
+            await newRecord.save();
+            return ;   
         }
-        let newRecord = new url({userId,fullURL,shortURL});
-        await newRecord.save();
-        return res.json({message:"new record saved !.."});
     }
     catch(error){
         res.json({message:"some thing error !! "})
@@ -34,10 +36,17 @@ urlRoute.post('/',async(req,res)=>{
 
 urlRoute.get('/',async (req,res)=>{
     let{userId} = req.query;
-    let userURLs = await url.find({userId});
-    if(userURLs.length != 0)
+    let userUrls = await userURLs.find({userId}) 
+    if(userUrls.length != 0)
     {
-        let markup = dispalyURLs(userURLs);
+        let urlsArray=[];
+        let urlRecord;
+        for(let urlItem of userUrls)
+        {
+            urlRecord = await url.findOne({fullURL: urlItem["fullURL"]});
+            urlsArray.push(urlRecord);
+        }
+        let markup = dispalyURLs(urlsArray);
         notification(markup);
         return res.json({message: "Urls retrieved ..."});
     }
@@ -53,23 +62,26 @@ urlRoute.get('/:shortURl',async(req,res)=>{
     let shortURL = req.params.shortURl;
     let record = await url.findOne({shortURL});
     if(record)
+    {
         res.redirect(record.fullURL);
+        record.clickCounter += 1 ;
+        await record.save(); 
+    }
 })
 
-urlRoute.post('/:shortURl',async(req,res)=>{
-    let shortURL = req.params.shortURl;
-    let record = await url.findOne({shortURL});
-    if(record)
-        res.redirect(record.fullURL);
-})
-
-function dispalyURLs(userURLs)
+function dispalyURLs(urlsArray)
 {
-    let markup=`<contains-html><div style=border-radius:15px;background:lightgray;padding:10px>\
-    <h4 style=text-align:center>Your Short URLs 🔗</h4>\
-    ${userURLs.map((url,i)=>{
-        return `<DR[${i+1}]>${url.shortURL}</DR[${i+1}]></br>\
-                <DataRequest[${i+1}]><DRURL[${i+1}]>http://localhost:3000/urls/${url.shortURL}</DRURL[${i+1}]></DataRequest[${i+1}]>`})}</div></contains-html>`;
+    let markup=`<contains-html><div style=border-radius:15px;background:lightgray;padding:15px>\
+    <h4 style=text-align:center>Your Short URLs List 🔗</h4>\
+    <table><tr>\
+    <td style=padding:7px><b>Short URL</b></td>\
+    <td style=padding:7px><b>Visited Times</b></td>\
+    </tr>\
+    ${urlsArray.map((url)=>{
+        return `<tr>\
+                <td style=padding:7px;>http://localhost:3000/urls/${url.shortURL}</td>\
+                <td style=padding:7px;text-align:center><b>${url.clickCounter}</b></td>\
+                </tr>`})}</table></div></contains-html>`;
     return markup;
 }
 export default urlRoute;
