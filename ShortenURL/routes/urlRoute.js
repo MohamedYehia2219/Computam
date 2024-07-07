@@ -16,10 +16,16 @@ urlRoute.post('/',async(req,res)=>{
             let shortURL = new ShortUniqueId({length:10}).rnd();
             let newURL = new url({fullURL, shortURL, clickCounter:0});
             await newURL.save();
+            let markup =`<contains-html><a target="_blank" href=https://url-production.up.railway.app/urls/${shortURL}>https://url-production.up.railway.app/urls/${shortURL}</a></contains-html>`;
+            notification(markup);
             res.json({message:" The URL saved successfully.."});
         }
         else
-            res.json({message:" The URL already saved .."});
+        {
+            let markup =`<contains-html><a target="_blank" href=https://url-production.up.railway.app/urls/${exisredURL.shortURL}>https://url-production.up.railway.app/urls/${exisredURL.shortURL}</a></contains-html>`;
+            notification(markup);
+            return res.json({message:" The URL already saved .."});
+        }
         // user table
         let existedRecord = await userURLs.findOne({userId,fullURL});
         if(!existedRecord)
@@ -79,7 +85,7 @@ function dispalyURLs(urlsArray)
     </tr>\
     ${urlsArray.map((url)=>{
         return `<tr>\
-                <td style=padding:7px;>http://localhost:3000/urls/${url.shortURL}</td>\
+                <td style=padding:7px;><a target="_blank" href=https://url-production.up.railway.app/urls/${url.shortURL}>https://url-production.up.railway.app/urls/${url.shortURL}</a></td>\
                 <td style=padding:7px;text-align:center><b>${url.clickCounter}</b></td>\
                 </tr>`})}</table></div></contains-html>`;
     return markup;
