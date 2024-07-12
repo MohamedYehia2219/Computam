@@ -1,14 +1,21 @@
 import express from "express";
 import notification from "../utils/notification.js";
 import getTopicNews from "../utils/NewsAPI.js";
+import getRightName from "../utils/gemini api.js";
 
 const newsRouter = express.Router();
 newsRouter.get("/", async (req, res) => {
   let { topic } = req.query;
-  let News = await getTopicNews(topic);
+  let rightTopipcName = await getRightName(topic);
+  console.log(rightTopipcName);
+  let News = await getTopicNews(rightTopipcName);
   if (News.length != 0) {
     let markup = dispalyNews(News);
-    console.log(markup);
+    notification(markup);
+  }
+  else 
+  { 
+    let markup = `<contains-html><h3>Invalid Topic!!..</h3></contains-html>`;
     notification(markup);
   }
   return res.json({ message: "news", articles: News });
