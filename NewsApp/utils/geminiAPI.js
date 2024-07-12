@@ -1,15 +1,15 @@
 import { GoogleGenerativeAI } from "@google/generative-ai"
-GOOGLE_API_KEY=AIzaSyDAC3HZ01VbQqgOkL9pEBTwibSbBvYcqUg
-
+let GOOGLE_API_KEY="AIzaSyDAC3HZ01VbQqgOkL9pEBTwibSbBvYcqUg";
 const genAI = new GoogleGenerativeAI(GOOGLE_API_KEY);
-async function getAlbumNames(topic) {
+
+async function getTopicNews(topic){
   const model = genAI.getGenerativeModel({ model: "gemini-pro" });
-  const prompt = `You will be sent a label for specific topic or an entity and wou should send me an full URL for an image
-                    that matches this topic or this entity 
-                    Example topic: Football
-                            reply: https://looking-for-soccer.com/wp-content/uploads/2021/12/football-g475eabc40_1280-1024x682.jpg
+  const prompt = `You will be sent a specific topic and you should send me an URL for a website 
+                    that contains latest news about this topic. 
+                    Example topic: sports news
+                            reply: https://www.skysports.com/
                     Example topic: Economics
-                            reply: https://www.investopedia.com/thmb/NhnAQzNqF2HrcKDmNZprh3JCk04=/1500x0/filters:no_upscale():max_bytes(150000):strip_icc()/economics-source-b80e91b606bd4729815840bad4ff3ecd.png                  
+                            reply: https://www.bbc.com/news/business/economy                
                     name: ${topic}
                     Reply:
                    `;
@@ -18,3 +18,4 @@ async function getAlbumNames(topic) {
   const text = response.text();
   return text;
 }
+export default getTopicNews;
